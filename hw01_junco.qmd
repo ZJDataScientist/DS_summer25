@@ -1,7 +1,11 @@
 ---
-title: "Review"
+title: "hw01_junco"
+author: "Zhander Junco"
 format: html
-editor: visual
+execute:
+  echo: true
+  warning: false
+  message: false
 ---
 
 ```{r setup, include=FALSE}
@@ -50,6 +54,7 @@ library(pacman)
 library(tidyverse)
 library(lubridate)
 library(ggplot2)
+library(dplyr)
 
 pacman::p_load(pacman, tidyverse,
                nycflights13)
@@ -102,3 +107,24 @@ age_delay %>%
 ```
 
 ### **Problem 3**: Find the 10 days of the year that have the highest median departure delay, then select all flights from those 10 days.
+
+```{r}
+worst_day<- flights%>%
+  group_by(month, day)%>%
+  summarise(median_dep = median(dep_delay, na.rm = TRUE),
+            n = n(),
+            .groups = "drop") %>%
+  slice_max(order_by = median_dep, n = 10, with_ties = FALSE)%>%
+  arrange(desc(median_dep))
+
+worst_day
+```
+
+```{r}
+flights_worst <- flights%>%
+  semi_join(worst_day, by = c("month", "day"))%>%
+  count(month, day, sort = TRUE)
+
+flights_worst
+
+```
