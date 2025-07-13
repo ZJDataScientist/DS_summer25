@@ -147,6 +147,8 @@ date_info
 
 ```
 
+In this question, I used seq() and lubridate to generate a sequence of dates starting from January 1, 2015, to December 31, 2025, with spacing of every two months. I then extracted useful time related components like year, quarter , and ISO week number using year(), quarter () , and isoweek(). This kind of transformation is particularly helpful in time series or panel data, where grouping and aggregating by these calendar units can support better insights.
+
 ### Question 6:
 
 Given the following dates, compute the difference in **months** and **weeks** between each consecutive pair.
@@ -155,6 +157,41 @@ Given the following dates, compute the difference in **months** and **weeks** be
 sample_dates <- c("2018-03-15", "2020-07-20", "2023-01-10", "2025-09-05")
 ```
 
+```{r}
+# Vector dates defined 
+sample_dates <- ymd(c("2018-03-15", "2020-07-20", "2023-01-10", "2025-09-05"))
+
+```
+
+```{r}
+# Difference in time between each pair
+date_diffs <- diff(sample_dates)
+
+# Difference in weeks
+
+week_diffs <- as.numeric(date_diffs, units = "weeks")
+
+# Difference in months 
+
+month_diffs <- time_length(date_diffs, unit = "months")
+```
+
+```{r}
+
+# Data frame 
+
+date_diff_df <- data.frame(
+  from = sample_dates [-length(sample_dates)],
+  to = sample_dates [-1],
+  weeks = round(week_diffs, 1),
+  months = round(month_diffs, 1)
+)
+
+date_diff_df
+```
+
+Here, I calculated the difference between each consecutive pair of dates from a short list. Using diff () on the date vector gave me interval objects, which I then converted to weeks ( with as.numeric ) and months (using time_length). This approach allowed me to clearly compare time gaps between events in multiple units. It's a practical use case for handling time intervals in reporting or time to event analysis.
+
 ### Question 7: Higher-Order Functions with purrr
 
 Using `map()` and `map_dbl()`, compute the **mean**, **median**, and **standard deviation** for each numeric vector in the following list:
@@ -162,6 +199,40 @@ Using `map()` and `map_dbl()`, compute the **mean**, **median**, and **standard 
 ``` r
 num_lists <- list(c(4, 16, 25, 36, 49), c(2.3, 5.7, 8.1, 11.4), c(10, 20, 30, 40, 50))
 ```
+
+```{r}
+num_lists <- list(c(4, 16, 25, 36, 49), c(2.3, 5.7, 8.1, 11.4), c(10, 20, 30, 40, 50))
+```
+
+```{r}
+
+# Mean for each vector
+
+means <- map_dbl(num_lists, mean)
+
+# Median for each vector 
+
+medians <- map_dbl(num_lists, median)
+
+# Standard Deviation for each vector
+
+sds <- map_dbl(num_lists, sd)
+```
+
+```{r}
+# Summary Data frame 
+
+summary_df <- data.frame(
+  set = paste0("Vector_", seq_along(num_lists)),
+  mean = round(means, 2),
+  median = round(medians, 2),
+  sd = round(sds, 2)
+)
+
+summary_df
+```
+
+I used map_dbl () to apply statistical summary functions across each numeric vector in the list. This approach avoids the need for loops and keeps the code clean and readable. It's specially useful for quickly summarizing structured data. \
 
 ### Question 8: Combining lubridate and purrr
 
