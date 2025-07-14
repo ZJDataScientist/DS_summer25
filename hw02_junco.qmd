@@ -242,6 +242,34 @@ Given a list of mixed date formats, use `map()` and `possibly()` from `purrr` to
 date_strings <- list("2023-06-10", "2022/12/25", "15-Aug-2021", "InvalidDate")
 ```
 
+```{r}
+date_strings <- list("2023-06-10", "2022/12/25", "15-Aug-2021", "InvalidDate")
+
+safe_parse <- possibly(
+  ~ parse_date_time(.x, orders = c("ymd", "Ymd", "d-b-Y", "Y/m/d")),
+  otherwise = NA
+)
+
+parsed_dates <- map(date_strings, safe_parse)
+parsed_vec <- as_date(unlist(parsed_dates))
+
+month_names <- map_chr(parsed_dates, function(x) {
+  if (is.na(x) || length(x) == 0) NA_character_
+  else as.character(month(x, label = TRUE, abbr = FALSE))
+})
+
+date_df <- data.frame(
+  original = unlist(date_strings),
+  parsed_date = parsed_vec,
+  month_name = month_names,
+  stringsAsFactors = FALSE
+)
+
+date_df
+```
+
+In this task I worked with a list of date strings written in different formats. To handle this safely, I used purrr along with possibly to attempt to parse each date while handling failures by returning NA. I used parse_date_time to support multiple input formats. After parsing the valid dates, I extracted the full month name using month and wrapped it in as.character, to avoid warnings. This approach keeps the pipeline robust and flexible, even when dealing with messy or inconsistent data, which is often the case in real world datasets. \
+
 ## Submission
 
 -   Save your Quarto file after completing each problem, render it, then stage and commit the changes.\
