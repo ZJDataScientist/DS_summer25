@@ -182,9 +182,11 @@ WHERE "airlines"."name" = 'United Air Lines Inc.';
 
 ```
 
+To solve this problem, we needed to retrieve all flight records associated with "United Air Lines Inc." from the flights table. However, the flights table only contains airline codes (e.g., UA), not full carriers names. To match the full name, we used an inner join between flights and the airlines table on the "carrier" column, which allowed us to filter using the carrier's full name. We selected all columns from the flights table to satisfy the requirement of retrieving all flight details.
+
 The query above retrieves all flights from "United Air Lines Inc." as requested. Due to output limits in quarto, only the first 10 rows are shown. However, the query is not limited and return flights across the full year.
 
-The following query is included to validate that the dataset flight records for United Air Lines Inc. across all months of the year. Since quarto only displays a limited number of rows by default, this grouped summary helps demonstrate that the main query retrieves a complete set of flights throughout the year, even though a portion is visible in the output.
+The following query is included to validate that the data set flight records for United Air Lines Inc. across all months of the year. Since quarto only displays a limited number of rows by default, this grouped summary helps demonstrate that the main query retrieves a complete set of flights throughout the year, even though a portion is visible in the output.
 
 ```{sql, connection=practcon}
 SELECT 
@@ -200,11 +202,6 @@ ORDER BY "year", "month";
 #### Problem 3: Count the Number of Flights for Each Carrier
 
 Write a SQL query to count the total number of flights for each carrier.\
-\
-**Solution Strategy:**
-
-1.  Group flights by carrier
-2.  Count how many flights each one had
 
 ```{sql, connection=practcon}
 SELECT 
@@ -218,7 +215,7 @@ ORDER BY total_flights DESC;
 
 ```
 
-To answer this question, we needed to count how many flights each airline operated. The flights table contains a "carrier" column with short codes, while the a\
+To answer this question, we needed to count how many flights each airline operated. The flights table contains a "carrier" column with short codes, while the airlines table provides the full carrier names. To make the output redable and meaningful, we performed an inner join between "flights" and "airlines" on the "carrier". We then grouped the data by "airlines". "name" and used the COUNT (\*) function to calculate the total number of flights per airline. Finally, we ordered the results in descending order to show the carriers with the highest flight counts first.
 
 #### Remember to Close the connection When You Are Done
 
