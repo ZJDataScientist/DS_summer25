@@ -13,15 +13,12 @@ ggplot2::theme_set(ggplot2::theme_bw() + ggplot2::theme(strip.background = ggplo
 
 ## Instructions
 
-
 Complete the following exercises using the appropriate packages in R. Ensure that your solutions are optimized and use functional programming principles where applicable.
 
 1.  Load the necessary libraries.
 2.  Answer each question in separate R code chunks.
 3.  Provide detailed explanations for your approach.
 4.  Submit the rendered HTML file.
-
-
 
 ```{r}
   if (!require("pacman")) install.packages("pacman")
@@ -30,97 +27,90 @@ Complete the following exercises using the appropriate packages in R. Ensure tha
 pacman::p_load(pacman,rvest, dplyr, tidyverse, xml2,janitor, DBI, duckdb, nycflights13)
 ```
 
-
-
-
-
 ## WebScraping
 
 ### Problem 1:
 
 Go to the following page [List of U.S. states and territories by population](https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_population) and select the table `State and territory rankings`.
 
-1. Make sure the name of columns and the first row is correct\
-2. Make sure the class of each column is correct\
-3. Replace `__` with `NA`\
+1.  Make sure the name of columns and the first row is correct\
+2.  Make sure the class of each column is correct\
+3.  Replace `__` with `NA`
 
+**Solution Strategy:** \
+\
+ 1. Read the Wikipedia page
 
-## SQL
-
-Please download a duck database.  <https://data-science-master.github.io/lectures/data/flights.duckdb>
-
--   Use `duckdb()` and `DBI::dbConnect()` to create a connection to "flights.duckdb".
-
-```{r}
-     practcon<- dbConnect(duckdb(dbdir = "./data/flights.duckdb", read_only = FALSE))
-
-```
-
--   `dbConnect()`: This function establishes a connection to a database.
-
--   `duckdb()`: Specifies you are connecting to a DuckDB database, which is an embedded analytical SQL database.
-
--   `dbdir = "flights.duckdb"`: This tells DuckDB to store the database in a file called flights.duckdb. If the file doesn't exist, it will be created.
-
--   `read_only = FALSE`: This means you are allowing the database to be modified. If you set this to TRUE, the database would be read-only, meaning you could only query data but not make changes to it.
-
--   So, setting `read_only = FALSE` is necessary if you want to add, update, or delete data in the database.
-
--   You can see the object `practcon` in the "Global Environment" indicating the connection profile has been established to the database.
-
--   Check is the connection has established
+2.  Extract all tables with 'wikitable'
+3.  Target the correct table by position
+4.  Extract the <thead> rows for custom header handling
+5.  Extract header text using html_text2() to avoid NA issues
+6.  Combine multi-row headers keeping first column from header1, rest from header2
+7.  Extract table body (the actual data rows)
+8.  Assign clean column names
+9.  Clean up "\_\_" & "-"and convert to NA
+10. Convert Column Types:
+11. View structure
 
 ```{r}
-dbIsValid(practcon)
+
+
+# Step 1: Read the Wikipedia page
+url <- "https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_population"
+wiki_html <- read_html(url)
+
+# Step 2: Extract all tables with class 'wikitable'
+tables <- html_elements(wiki_html, ".wikitable")
+
+# Step 3: Target the correct table by position 
+target_table <- tables[[1]]
+
+# Step 4: Extract the <thead> rows for custom header handling
+header_rows <- html_elements(target_table, "thead tr")
+
+# Step 5: Extract header text using html_text2() to avoid NA issues
+header1 <- html_elements(header_rows[1], "th") %>% html_text2()
+header2 <- html_elements(header_rows[2], "th") %>% html_text2()
+
+# Step 6: Combine multi-row headers
+
+full_headers <- c(header1[1], header2)
+
+# Step 7: Extract table body (the actual data rows)
+table_body <- html_element(target_table, "tbody") %>%
+  html_table(header = FALSE)
+
+# Step 8: Assign clean column names (temporary)
+colnames(table_body) <- make_clean_names(full_headers)
+
+# 8.1 Promote first row as column names
+table_body <- row_to_names(table_body, row_number = 1)
+
+# Clean column names again (now the real headers)
+table_body <- clean_names(table_body)
+
+# Step 9: Clean up "__" and "—" and convert to NA
+table_body <- table_body %>%
+  mutate(across(everything(), ~ na_if(., "__"))) %>%
+  mutate(across(everything(), ~ na_if(., "—")))
+
+# Step 10: Convert column types
+table_body <- readr::type_convert(table_body)
 ```
 
-Please note that a basic SQL code chunk looks like this (put SQL code between the chunks):
+Optional step I like to use is to display the link to the original source using gt:
 
-```{r, echo = FALSE, comment = ""}
-    codechunk <- "```{sql, connection=con}\n\n```"
-    writeLines(codechunk)
+```{r}
+
+table_body %>%
+  gt() %>%
+  tab_caption("Table: U.S. States and Territories by Population") %>%
+  tab_source_note(
+    source_note = md("Source: [Wikipedia](https://en.wikipedia.org/wiki/List_of_U.S._states_and_territories_by_population)")
+  )
 ```
 
-Print out a summary of the tables in this database.
-
-```{sql, connection=practcon, echo=FALSE, eval=FALSE}
-    DESCRIBE;
-```
-
--   Answer the following question using SQL.
-
-### Problem 2: Select Flights from a Specific Carrier
-
-Write a SQL query to find all flights from the carrier "United Air Lines Inc.".
-
-
-### Problem 3: Count the Number of Flights for Each Carrier
-
-Write a SQL query to count the total number of flights for each carrier.
-
-
-## Remember to Close the connection When You Are Done
-
- - if the connection is open then you need to use `dbDisconnect()` function
-
-
-
-## Submission
-
-* Save your Quarto file after completing each problem, render it, then stage and commit the changes.\
-
-* Include well-commented code and clear explanations.\
-
-* Make at least **one commit per question**.\
-
-* Submit the rendered file to **Canvas** and push it to your **GitHub repository**.\
-
-
-* Provide the link to your GitHub repository in the **Canvas gradebook** as a text submission.\
-
-🔹 **Problem 1 is worth 40 points, and Problems 2 and 3 are each worth 20 points.**\
-
-🔹 You will receive an additional **20 points** if you correctly push your completed file to GitHub and make at least one commit for each problem.\
-
-
-**Good luck!**
+\
+To Solve this problem, we begin by scrapping the target Wikipedia page and identifying the correct table using CSS selector. Since the table has multiple row heads, we manually extract and combine them to construct clean column names. The table data is then read in without headers, and the combined headers are applied. We replace placeholders values like "\_\_" and "-" with NA to standardize missing data. The first row is promoted to become the column names, followed by cleaning and converting the column types to their appropriate formats using readr::type_convert(). This ensures the data is tidy and usable for further analysis. \
+\
+An optional step I like to use is to display the cleaned table using the gt package, which allows me to add a caption and include a clickable link to the original source for reference.
