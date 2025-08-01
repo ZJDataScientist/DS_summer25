@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo       = TRUE,
 ggplot2::theme_set(ggplot2::theme_bw() + ggplot2::theme(strip.background = ggplot2::element_rect(fill = "white")))
 ```
 
-**Title**: Exploring Joyful Language in Jane Austen’s *Emma* using Tidytext
+# Exploring Joyful Language in Jane Austen’s *Emma* using Tidytext
 
 ### **Instructions**
 
@@ -40,6 +40,7 @@ library(stringr)
 library(tibble)
 library(tidyr)
 library(tidytext)
+library(textdata)
 ```
 
 b\. Group by book and detect chapter boundaries using regex; and Create `linenumber` and `chapter` columns.
@@ -112,21 +113,39 @@ chapter_boundaries %>%
 
 -   We use str_extract() to keep only alphabetic characters and apostrophes, removing punctuation or formating symbols. Then we remove common stop words (like "the", "and", "of") using anti_join(stop_words), which helps focus the analysis on meaningful words.
 
-1.  **Sentiment Analysis**
+3.  **Sentiment Analysis**
 
-    -   Filter joy/positive words from **each** of the three sentiment lexicons:
+-   Filter joy/positive words from **each** of the three sentiment lexicons:
 
-        -   `nrc` (joy)
-        -   `afinn` (positive scores ≥ 1)
-        -   `bing` (positive)
+    -   `nrc` (joy)
 
-    -   Join each with *Emma*'s text and:
+    ```{r}
+    nrc_joy <- get_sentiments("nrc") %>% 
+      filter(sentiment == "joy")
+    ```
 
-        -   Count word frequency.
-        -   Filter for frequently occurring words (`n > 50`).
-        -   Visualize using a **bar chart** (`ggplot2`) and a **word cloud** (`wordcloud`).
+    -   `afinn` (positive scores ≥ 1)
 
-2.  **Push to GitHub**
+    ```{r}
+    afinn_positive <- get_sentiments("afinn") %>% 
+      filter(value >= 1)
+    ```
+
+    -   `bing` (positive)
+
+    ```{r}
+    bing_positive<- get_sentiments("bing") %>% 
+      filter(sentiment == "positive")
+
+    ```
+
+-   Join each with *Emma*'s text and:
+
+    -   Count word frequency.
+    -   Filter for frequently occurring words (`n > 50`).
+    -   Visualize using a **bar chart** (`ggplot2`) and a **word cloud** (`wordcloud`).
+
+1.  **Push to GitHub**
 
     -   Push your complete R script (`.R` file) to a **GitHub repository**.
 
