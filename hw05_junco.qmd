@@ -45,6 +45,7 @@ library(ggplot2)
 library(wordcloud)
 library(RColorBrewer)
 library(ggrepel)
+library(patchwork)
 ```
 
 b\. Group by book and detect chapter boundaries using regex; and Create `linenumber` and `chapter` columns.
@@ -164,7 +165,7 @@ emma_joy_words <- chapter_boundaries %>%
   unnest_tokens(word, text) %>%
   inner_join(nrc_joy, by = "word") %>%
   count(word, sort = TRUE) %>%
-  filter(n > 50)
+  filter(n > 50) # Line filtering by frequency
   
 ```
 
@@ -180,7 +181,7 @@ emma_bing_words <- chapter_boundaries %>%
   unnest_tokens(word, text) %>%
   inner_join(bing_positive, by = "word") %>%
   count(word, sort = TRUE) %>%
-  filter(n > 50)
+  filter(n > 50) # Line filtering by frequency
 
 ```
 
@@ -196,7 +197,7 @@ emma_afinn_words <- chapter_boundaries %>%
   unnest_tokens(word, text) %>%
   inner_join(afinn_positive, by = "word") %>%
   count(word, sort = TRUE) %>%
-  filter(n > 50)
+  filter(n > 50) # Line filtering by frequency
 
 
 ```
@@ -204,18 +205,87 @@ emma_afinn_words <- chapter_boundaries %>%
 Afinn assigns numeric sentiment scores. We selected words with a score of 1 or more positive sentiments (afinn_positive) joined them with the text, and identified those that occurred frequently.
 
 -   Visualize using a **bar chart** (`ggplot2`) and a **word cloud** (`wordcloud`).
+-   Bar Chart
 
 ```{r}
 ## Bar Chart using bing - Top positive words (n > 50)
 
-ggplot(emma_bing_words, aes(x = reorder(word, n), y = n)) +
-  geom_col(fill = "steelblue") +
+plot_bing <- ggplot(emma_bing_words, aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "#1b9e77") +
   coord_flip() +
-  labs( title = "Most Frequen Postive Words in 'Emma'",
-        x = "Word", y = "Frequency") +
-  theme_minimal() 
+  labs(title = "Bing Lexicon", x = "Word", y = "Frequency") +
+  theme_minimal()
+plot_bing
+```
+
+```{r}
+## Bar Chart using afinn 
+
+plot_afinn <- ggplot(emma_afinn_words, aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "#d95f02") +
+  coord_flip() +
+  labs(title = "afinn Lexicon", x = "Word", y = "Frequency") +
+  theme_minimal()
+plot_afinn
+```
+
+```{r}
+## nrc (Joy)
+
+plot_nrc <- ggplot(emma_joy_words, aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "#7570b3") +
+  coord_flip() +
+  labs(title = "NRC Joy Words", x = "Word", y = "Frequency") +
+  theme_minimal()
+plot_nrc
+```
+
+The plots above compare the most frequent positive/joyful sentiment words in Emma using three popular sentiment lexicons: bin, afinn, nrc. The bar charts show word frequencies.
+
+-   Chatter plot
+
+```{r}
+emma_chatter <- chapter_boundaries %>%
+  filter(book == "Emma") %>%
+  unnest_tokens(word, text) %>%
+  inner_join(emma_bing_words, by = "word") %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 50) %>%  # 🔄 THIS LINE FILTERS BY FREQUENCY
+  mutate(proportion = n / sum(n)) %>%
+  mutate(book = "Emma")
+
+
+ggplot(emma_chatter, aes(x = book, y = proportion, label = word)) +
+  geom_text_repel(
+    segment.alpha = 0,
+    aes(size = proportion, color = proportion),
+    max.overlaps = 100,
+  ) +
+  scale_size_continuous(range = c(3, 7), guide = "none") +
+  scale_color_viridis_c(option = "plasma", guide = "none") +
+  theme_minimal() +
+  ggtitle("Top Positive Words in 'Emma' by Proportion") +
+  ylab("Proportion of Words") +
+  xlab("")
+```
+
+To visualize the positive words in Emma, we created a "chatter plot". The analysis filtered for words that appeared more than 50 times and were classified as positive by the bing Lexicon. Each word is displayed with its size and color scaled according to its relative frequency. The use of geom_text_repel() ensured that labels do not overlap, providing a clear, uncluttered view of the most impactful positive terms in the novel. This visualization highlights the language tone and recurring positive themes present thought the book.
+
+-   Word cloud
+
+```{r}
+emma_chatter %>%
+  filter(n > 50) %>%
+  with(wordcloud(
+    words = word,
+    freq = n,
+    max.words = 50,
+    scale = c(3, 0.8)  # Adjusts max and min font sizes
+  ))
 
 ```
+
+The world cloud highlights the top 50 most frequent positive words in Emma, sized by their frequency. Unlike the chatter plot, which shows proportional differences more precisely, the word cloud offers a quick, visual impressison of word prominence. To avoid overlap issues, the text size was scaled to ensure readability.
 
 1.  **Push to GitHub**
 
