@@ -13,9 +13,7 @@ ggplot2::theme_set(ggplot2::theme_bw() + ggplot2::theme(strip.background = ggplo
 
 **Title**: Exploring Joyful Language in Jane Austen’s *Emma* using Tidytext
 
-
 ### **Instructions**
-
 
 Complete the following exercises using the appropriate packages in R. Ensure that your solutions are optimized and use functional programming principles where applicable.
 
@@ -24,72 +22,117 @@ Complete the following exercises using the appropriate packages in R. Ensure tha
 3.  Provide detailed explanations for your approach.
 4.  Submit the rendered HTML file.
 
-
-
-
-
-
-
-
-####  **Objective**:
+#### **Objective**:
 
 Use the **`tidytext`** package and three different **sentiment lexicons** (`nrc`, `afinn`, `bing`) to explore **positive/joyful words** in *Emma* by Jane Austen. You will tokenize the text, apply sentiment filters, visualize frequent sentiment words using `ggplot2`, and create a word cloud.
 
-
 ### **Tasks**:
 
-1. **Data Preparation** 
+1.  **Data Preparation**
 
-   * Load the `austen_books()` dataset from the **`janeaustenr`** package.
-   * Group by book and detect chapter boundaries using regex.
-   * Create `linenumber` and `chapter` columns.
+a\. Load the `austen_books()` dataset from the **`janeaustenr`** package.
 
-2. **Tokenization** 
+```{r}
+library(janeaustenr)
+```
 
-   * Use `unnest_tokens()` to tokenize text into individual words.
-   * Explain briefly **why we name the output column `word`** (include this as a comment in your script).
+b\. Group by book and detect chapter boundaries using regex; and Create `linenumber` and `chapter` columns.
 
-3. **Sentiment Analysis** 
+```{r}
+library(tidyverse)
+library(dplyr)
 
-   * Filter joy/positive words from **each** of the three sentiment lexicons:
+austen_books() %>%
+  group_by(book) %>%
+  mutate(
+    linenumber = row_number(),
+    chapter = cumsum(str_detect(
+      text, 
+      regex("^chapter\\s+[\\divxlc]+", 
+            ignore_case = TRUE
+           )
+      )),
+    .before = text
+  ) %>%
+  ungroup() %>%
+  select(book, chapter, linenumber, text) -> 
+  chapter_boundaries
+```
 
-     * `nrc` (joy)
-     * `afinn` (positive scores ≥ 1)
-     * `bing` (positive)
-   * Join each with *Emma*'s text and:
+***The code processes Jane Austen's text by:***
 
-     * Count word frequency.
-     * Filter for frequently occurring words (`n > 50`).
-     * Visualize using a **bar chart** (`ggplot2`) and a **word cloud** (`wordcloud`).
+-   Grouping the data by book title
 
-4. **Push to GitHub** 
+-   Creating two new columns:
 
-   * Push your complete R script (`.R` file) to a **GitHub repository**.
-   * Your script should include:
+    -   Line number: assigns a sequential number to each line
 
-     * Data wrangling
-     * Sentiment filtering and joins
-     * Visualization code
-   * You must include **at least 5 meaningful commits** to document your workflow.
+    -   chapter: detects chapter headers using regex and assigns a chapter number using cumulative counting with cumsum()
 
----
+-   The regex looks for lines that begin with the word "chapter" followed by a space and a Roman numeral or digit.
+
+-   These new columns are inserted before the text column using .before = text.
+
+-   The grouping is removed (ungroup()), and only relevant columns (book, chapter, linenumber, text) atr selected.
+
+-   The final processed data is saved into an object called chapter_boundaries
+
+***Regex Breakdown:***
+
+-   \^chapter: matches lines that start with the word "chapter"
+
+-   \\\\s+: matches one or more spaces after "chapter"
+
+-   \[\\\\divxlc\] +: matches Roman numerals, handling lowercase, and could also allow digits depending on variation. It also assigns them as chapter boundaries.
+
+Chapter boundaries refer to the starting points of new chapters (we're not trying to figure out where they end).
+
+2.  **Tokenization**
+
+-   Use `unnest_tokens()` to tokenize text into individual words.
+-   Explain briefly **why we name the output column `word`** (include this as a comment in your script).
+
+1.  **Sentiment Analysis**
+
+    -   Filter joy/positive words from **each** of the three sentiment lexicons:
+
+        -   `nrc` (joy)
+        -   `afinn` (positive scores ≥ 1)
+        -   `bing` (positive)
+
+    -   Join each with *Emma*'s text and:
+
+        -   Count word frequency.
+        -   Filter for frequently occurring words (`n > 50`).
+        -   Visualize using a **bar chart** (`ggplot2`) and a **word cloud** (`wordcloud`).
+
+2.  **Push to GitHub**
+
+    -   Push your complete R script (`.R` file) to a **GitHub repository**.
+
+    -   Your script should include:
+
+        -   Data wrangling
+        -   Sentiment filtering and joins
+        -   Visualization code
+
+    -   You must include **at least 5 meaningful commits** to document your workflow.
+
+------------------------------------------------------------------------
+
 ## **Rubric 100 Points**
 
-| Category                                       | Points |
-| ---------------------------------------------- | ------ |
+| Category                                       | Points  |
+|------------------------------------------------|---------|
 | Step 1: Data wrangling (linenumber, chapter)   | 10      |
 | Step 2: Tokenization + explanation             | 10      |
 | Step 3a: NRC sentiment analysis + plots        | 10      |
-| Step 3b: AFINN sentiment analysis + plots      | 10     |
+| Step 3b: AFINN sentiment analysis + plots      | 10      |
 | Step 3c: BING sentiment analysis + plots       | 10      |
 | Code readability, structure, and comments      | 10      |
 | Word cloud for each lexicon                    | 20      |
 | GitHub submission                              |         |
-| Commit history (at least 5 meaningful commits) | 20     |
+| Commit history (at least 5 meaningful commits) | 20      |
 | **Total**                                      | **100** |
 
-
-
-
 Good Luck!
-
