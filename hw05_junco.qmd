@@ -143,6 +143,23 @@ chapter_boundaries %>%
 
     -   Count word frequency.
     -   Filter for frequently occurring words (`n > 50`).
+
+    ```{r}
+
+    all_sentiments <- bind_rows(nrc_joy, afinn_positive, bing_positive) 
+
+    chapter_boundaries %>%
+      filter(book == "Emma") %>%
+      unnest_tokens(word, text) %>%
+    inner_join(all_sentiments, by = "word") %>%
+      count(word, sort = TRUE) %>%
+      filter(n > 50)-> 
+      emma_words
+
+
+      
+    ```
+
     -   Visualize using a **bar chart** (`ggplot2`) and a **word cloud** (`wordcloud`).
 
 1.  **Push to GitHub**
