@@ -34,13 +34,17 @@ a\. Load the `austen_books()` dataset from the **`janeaustenr`** package.
 
 ```{r}
 library(janeaustenr)
+library(tidyverse)
+library(dplyr)
+library(stringr)
+library(tibble)
+library(tidyr)
+library(tidytext)
 ```
 
 b\. Group by book and detect chapter boundaries using regex; and Create `linenumber` and `chapter` columns.
 
 ```{r}
-library(tidyverse)
-library(dplyr)
 
 austen_books() %>%
   group_by(book) %>%
@@ -91,6 +95,22 @@ Chapter boundaries refer to the starting points of new chapters (we're not tryin
 
 -   Use `unnest_tokens()` to tokenize text into individual words.
 -   Explain briefly **why we name the output column `word`** (include this as a comment in your script).
+
+```{r}
+## We name the output column 'word' because is the conventional tidytext function for sentiment analysis
+
+chapter_boundaries %>% 
+  unnest_tokens(word, text) %>%  ## Tokenize text into individual words
+  mutate(word = str_extract(word, "[a-z']+")) %>%
+  anti_join(stop_words, by = "word") -> 
+  tidy_author 
+```
+
+***Code Explanation:***
+
+-   We name the output column "word" in unnest_tokens(word,text) because that's the standard name that functions in tidytext. It makes later joins with sentiment lexicons and stop word list easier, since those also use "word" as the column name.
+
+-   We use str_extract() to keep only alphabetic characters and apostrophes, removing punctuation or formating symbols. Then we remove common stop words (like "the", "and", "of") using anti_join(stop_words), which helps focus the analysis on meaningful words.
 
 1.  **Sentiment Analysis**
 
