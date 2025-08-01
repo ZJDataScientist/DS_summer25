@@ -41,6 +41,10 @@ library(tibble)
 library(tidyr)
 library(tidytext)
 library(textdata)
+library(ggplot2)
+library(wordcloud)
+library(RColorBrewer)
+library(ggrepel)
 ```
 
 b\. Group by book and detect chapter boundaries using regex; and Create `linenumber` and `chapter` columns.
@@ -120,6 +124,7 @@ chapter_boundaries %>%
     -   `nrc` (joy)
 
     ```{r}
+    ## Filter word associated with "joy" sentiment
     nrc_joy <- get_sentiments("nrc") %>% 
       filter(sentiment == "joy")
     ```
@@ -127,6 +132,7 @@ chapter_boundaries %>%
     -   `afinn` (positive scores ≥ 1)
 
     ```{r}
+    ## numeric sentiment scores with score of 1 or higher (representing positive sentiment)
     afinn_positive <- get_sentiments("afinn") %>% 
       filter(value >= 1)
     ```
@@ -134,33 +140,82 @@ chapter_boundaries %>%
     -   `bing` (positive)
 
     ```{r}
+    ## retain only words labeled as "positive"
     bing_positive<- get_sentiments("bing") %>% 
       filter(sentiment == "positive")
 
     ```
 
--   Join each with *Emma*'s text and:
+    In this step, we extract positive or joyful words from the three most common lexicons. This preprocessing gives us three sentiment specific word lists that we'll use to explore sentiment within Jane Austen's Emma.
 
-    -   Count word frequency.
-    -   Filter for frequently occurring words (`n > 50`).
+Join each with *Emma*'s text and:
 
-    ```{r}
+-   Count word frequency.
 
-    all_sentiments <- bind_rows(nrc_joy, afinn_positive, bing_positive) 
+-   Filter for frequently occurring words (`n > 50`).
 
-    chapter_boundaries %>%
-      filter(book == "Emma") %>%
-      unnest_tokens(word, text) %>%
-    inner_join(all_sentiments, by = "word") %>%
-      count(word, sort = TRUE) %>%
-      filter(n > 50)-> 
-      emma_words
+    -   `nrc` (joy)
+
+```{r}
+## NRC 
+
+emma_joy_words <- chapter_boundaries %>%
+  filter(book == "Emma") %>%
+  unnest_tokens(word, text) %>%
+  inner_join(nrc_joy, by = "word") %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 50)
+  
+```
+
+We previously filtered the NRC lexicon (nrc_joy) for words tagged as "joy", then joined it with the tonekized Emma text to count the most frequently joyful words. Words appearing more than 50 times were retained.
+
+-   `bing` (positive)
+
+```{r}
+## bing 
+
+emma_bing_words <- chapter_boundaries %>%
+  filter(book == "Emma") %>%
+  unnest_tokens(word, text) %>%
+  inner_join(bing_positive, by = "word") %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 50)
+
+```
+
+The bing lexicon classifies words as either "positive" or "negative". We filtered (bing_positive) for "positive" words and joined with Emma to find the most used positive vocabulary.
+
+-   `afinn` (positive scores ≥ 1)
+
+```{r}
+## afinn
+
+emma_afinn_words <- chapter_boundaries %>%
+  filter(book == "Emma") %>%
+  unnest_tokens(word, text) %>%
+  inner_join(afinn_positive, by = "word") %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 50)
 
 
-      
-    ```
+```
 
-    -   Visualize using a **bar chart** (`ggplot2`) and a **word cloud** (`wordcloud`).
+Afinn assigns numeric sentiment scores. We selected words with a score of 1 or more positive sentiments (afinn_positive) joined them with the text, and identified those that occurred frequently.
+
+-   Visualize using a **bar chart** (`ggplot2`) and a **word cloud** (`wordcloud`).
+
+```{r}
+## Bar Chart using bing - Top positive words (n > 50)
+
+ggplot(emma_bing_words, aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs( title = "Most Frequen Postive Words in 'Emma'",
+        x = "Word", y = "Frequency") +
+  theme_minimal() 
+
+```
 
 1.  **Push to GitHub**
 
