@@ -287,20 +287,6 @@ emma_chatter %>%
 
 The world cloud highlights the top 50 most frequent positive words in Emma, sized by their frequency. Unlike the chatter plot, which shows proportional differences more precisely, the word cloud offers a quick, visual impressison of word prominence. To avoid overlap issues, the text size was scaled to ensure readability.
 
-1.  **Push to GitHub**
-
-    -   Push your complete R script (`.R` file) to a **GitHub repository**.
-
-    -   Your script should include:
-
-        -   Data wrangling
-        -   Sentiment filtering and joins
-        -   Visualization code
-
-    -   You must include **at least 5 meaningful commits** to document your workflow.
-
-------------------------------------------------------------------------
-
 ## **Rubric 100 Points**
 
 | Category                                       | Points  |
