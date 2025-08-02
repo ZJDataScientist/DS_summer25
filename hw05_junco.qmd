@@ -1,5 +1,5 @@
 ---
-title: "Homework Assignment: Sentiment Analysis of Emma"
+title: "Exploring Joyful Language in Jane Austen’s Emma using Tidytext"
 format: html
 editor: visual
 ---
@@ -10,8 +10,6 @@ knitr::opts_chunk$set(echo       = TRUE,
                       fig.height = 3, fig.width = 4)
 ggplot2::theme_set(ggplot2::theme_bw() + ggplot2::theme(strip.background = ggplot2::element_rect(fill = "white")))
 ```
-
-# Exploring Joyful Language in Jane Austen’s *Emma* using Tidytext
 
 ### **Instructions**
 
@@ -67,6 +65,7 @@ austen_books() %>%
   ungroup() %>%
   select(book, chapter, linenumber, text) -> 
   chapter_boundaries
+head(chapter_boundaries)
 ```
 
 ***The code processes Jane Austen's text by:***
@@ -110,6 +109,7 @@ chapter_boundaries %>%
   mutate(word = str_extract(word, "[a-z']+")) %>%
   anti_join(stop_words, by = "word") -> 
   tidy_author 
+head(tidy_author)
 ```
 
 ***Code Explanation:***
@@ -128,6 +128,7 @@ chapter_boundaries %>%
     ## Filter word associated with "joy" sentiment
     nrc_joy <- get_sentiments("nrc") %>% 
       filter(sentiment == "joy")
+    head(nrc_joy)
     ```
 
     -   `afinn` (positive scores ≥ 1)
@@ -136,6 +137,7 @@ chapter_boundaries %>%
     ## numeric sentiment scores with score of 1 or higher (representing positive sentiment)
     afinn_positive <- get_sentiments("afinn") %>% 
       filter(value >= 1)
+    head(afinn_positive)
     ```
 
     -   `bing` (positive)
@@ -144,6 +146,7 @@ chapter_boundaries %>%
     ## retain only words labeled as "positive"
     bing_positive<- get_sentiments("bing") %>% 
       filter(sentiment == "positive")
+    head(bing_positive)
 
     ```
 
@@ -166,6 +169,7 @@ emma_joy_words <- chapter_boundaries %>%
   inner_join(nrc_joy, by = "word") %>%
   count(word, sort = TRUE) %>%
   filter(n > 50) # Line filtering by frequency
+head(emma_joy_words)
   
 ```
 
@@ -182,6 +186,7 @@ emma_bing_words <- chapter_boundaries %>%
   inner_join(bing_positive, by = "word") %>%
   count(word, sort = TRUE) %>%
   filter(n > 50) # Line filtering by frequency
+head(emma_bing_words)
 
 ```
 
@@ -198,7 +203,7 @@ emma_afinn_words <- chapter_boundaries %>%
   inner_join(afinn_positive, by = "word") %>%
   count(word, sort = TRUE) %>%
   filter(n > 50) # Line filtering by frequency
-
+head(emma_afinn_words)
 
 ```
 
